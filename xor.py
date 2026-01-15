@@ -1,4 +1,4 @@
-def xor_obfuscate(data, key):
+def xor_obfuscate(data:bytes, key:bytes):
     out = []
     key_len = len(key)
 
