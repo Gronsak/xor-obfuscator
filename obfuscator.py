@@ -26,9 +26,9 @@ def main() -> int:
     :return int: process exit code (0 success, 1 on error)
     """
     parser = argparse.ArgumentParser(
-        prog="xor Obfuscator",
+        prog="obfuscator.py",
         description="A simple program that obfuscates raw shellcode using xor to avoid detection by antivirus software.",
-        epilog="example usage, python obfuscator.py shellcode.bin -k 0x42 -m c -o obfuscated_code.xor",
+        epilog="example usage, python obfuscator.py shellcode.bin -k 0x42 -o obfuscated_code.xor",
         formatter_class=argparse.RawTextHelpFormatter)
     
     parser.add_argument("shellcodePath",
@@ -42,9 +42,9 @@ def main() -> int:
     parser.add_argument("-m", "--mode",
                         default="raw",
                         choices=["r","raw","c","c-array","p","python"],
-                        help="Format of the output\nr,raw - raw binary output. (default)\nc,c-array - As a C/C++ array for use in C/C++ code.\np,python - as a Python literal for use in Python code.")
+                        help="Format mode for the output\nr, raw - raw binary output. (default)\nc, c-array - As a C/C++ array for use in C/C++ code.\np, python - as a Python literal for use in Python code.")
     parser.add_argument("-o", "--output",
-                        help="Output path for xor obfuscated shellcode.\nIf omited, raw mode will result in no output but program will still run.")
+                        help="Output path for xor obfuscated shellcode.\nIf omitted, raw mode will result in no output but program will still run.")
     parser.add_argument("-t", "--terminal",
                         action="store_true",
                         help="If possible show output data in terminal.")
@@ -91,7 +91,7 @@ def main() -> int:
     outPath = args.output
     # If output exists ask user unless --force specified
     if outPath is not None and path.exists(outPath) and args.force is not True:
-        uinput = input(f"[!] File {outPath} already exists,\ndo you want to overwrite? (y/N): ").lower().strip()
+        uinput = input(f"[!] File {outPath} already exists,\n    do you want to overwrite? (y/N): ").lower().strip()
         # Keep prompting until valid answer received: explicit 'y' to continue
         while True:
             if uinput == "n" or uinput == "":
@@ -152,7 +152,7 @@ def main() -> int:
         else:
             print_status(f"{obfuscated}\n",(verbose or terminalOutput), True)
     
-    print_status("[+] Program finished! Happy hacking!",verbose)
+    print_status("[+] Program finished!\n    Happy hacking!",verbose)
     return 0
 
 if __name__ == '__main__':
