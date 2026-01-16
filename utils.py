@@ -9,9 +9,9 @@ def read_file(path:str):
         return data
     
 def write_bytes_to_file(path:str, data:bytes):
-    with open(path,"xb") as file:
+    with open(path,"wb") as file:
         file.write(data)
 
 def write_to_file(path:str, data:str):
-    with open(path,"x") as file:
+    with open(path,"w") as file:
         file.write(data)
