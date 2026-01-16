@@ -28,7 +28,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(
         prog="xor Obfuscator",
         description="A simple program that obfuscates raw shellcode using xor to avoid detection by antivirus software.",
-        epilog="example usage, 'python obfuscator.py -k 0x42 -f c shellcode.bin obfuscated_code.xor'",
+        epilog="example usage, python obfuscator.py shellcode.bin -k 0x42 -m c -o obfuscated_code.xor",
         formatter_class=argparse.RawTextHelpFormatter)
     
     parser.add_argument("shellcodePath",
