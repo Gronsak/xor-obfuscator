@@ -1,6 +1,6 @@
 def xor_obfuscate(data:bytes, key:bytes) -> bytes:
     """Runs xor function on **data** using **key**s bytes.
-
+    
     :param bytes data: bytes to xor.
     :param bytes key: bytes to be used as key in xor function.
     :return bytes: xor:ed bytes.
