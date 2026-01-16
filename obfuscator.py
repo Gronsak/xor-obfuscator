@@ -6,6 +6,10 @@ from utils import read_file_as_bytes, write_bytes_to_file, write_to_file
 from xor import xor_obfuscate
 from output_formats import format_as_c_array, format_as_python
 
+def print_status(msg:str,enabled:bool = True):
+    if enabled is True:
+        print(msg)
+
 def main() -> int:
     parser = argparse.ArgumentParser(
         prog="xor Obfuscator", 
@@ -16,15 +20,27 @@ def main() -> int:
                         help="Path to shellcode binary file.")
     parser.add_argument("outputPath", 
                         help="Output path for xor obfuscated shellcode.")
-    parser.add_argument("-f", "--format", 
+    parser.add_argument("-m", "--mode", 
                         default="raw", 
                         choices=["r","raw","c","c-array","p","python"],
                         help="Format of the output\nr,raw - raw binary output. (default)\nc,c-array - As a C/C++ array for use in C/C++ code.\np,python - as a Python literal for use in Python code.")
     parser.add_argument("-k", "--key",
                         help="The key for the xor operation,\ncan be either as as a hex byte formated as '0x42' or as a string 'example123'.",
                         required=True)
+    parser.add_argument("-f", "--force", "--overwrite",
+                        action="store_true",
+                        help="Skip overwrite prompt and always overwrite existing output file.")
+    parser.add_argument("-v", "--verbose",
+                        action="store_true",
+                        help="Print status messages and output data, if possible, while running the program.")
+    parser.add_argument("-t", "--terminal",
+                        action="store_true",
+                        help="If possible show output data in terminal.")
 
     args = parser.parse_args()
+
+    verbose = args.verbose
+    terminalOutput = args.terminal
 
     key = b""
     keyMode = ""
@@ -35,8 +51,9 @@ def main() -> int:
         key = bytes(args.key, "utf-8")
         keyMode = "string"
 
-    formatInput = args.format.lower()
+    formatInput = args.mode.lower()
     Format = Enum("Formats", [("raw", 0),("C", 1),("Python",2)])
+
     formatMode = Format.raw
     if formatInput == "r" or formatInput == "raw":
         formatMode = Format.raw
@@ -50,36 +67,43 @@ def main() -> int:
                "[X] Exiting!")
         return 1
     
-    if path.exists(args.outputPath):
-        uinput = input(f"[!] File {args.outputPath} already exists, overwrite? (y/N): ").lower().strip()
-        if uinput == "n" or uinput == "":
-            print("[-] File will not be replaced. Exiting!")
-            return 1
+    # TODO: handle overwrite
+    if path.exists(args.outputPath) and args.force is not True:
+        uinput = input(f"[!] File {args.outputPath} already exists,\ndo you want to overwrite? (y/N): ").lower().strip()
+        while True:
+            if uinput == "n" or uinput == "":
+                print("[-] File will not be overwriten. Exiting!")
+                return 1
+            elif uinput == "y":
+                print_status("[+] File will be overwriten.", verbose)
+                break
+            else:
+                uinput = input("[-] Invalid input, answer with 'y' or 'n'! (y/N): ")
         
     outPath = args.outputPath
     
     try:
         file = read_file_as_bytes(args.shellcodePath)
     except IOError:
-        print("[!] There was an error reading the file!\n"+
+        print_status("[!] There was an error reading the file!\n"+
               "[X] Exiting!")
         return 1
 
-    print(f"[+] Input: {args.shellcodePath} ({len(file)}bytes)\n"+
+    print_status(f"[+] Input: {args.shellcodePath} ({len(file)}bytes)\n"+
           f"[+] Output: {outPath}\n"+
           f"[+] Format: {formatMode.name}\n"+
-          f"[+] Key: {args.key} (mode:{keyMode})")
+          f"[+] Key: {args.key} (mode:{keyMode})", verbose)
     
-    print("[+] Running xor operation...")
+    print_status("[+] Running xor operation...", verbose)
     obfuscated = xor_obfuscate(file,key)
-    print(f"[+] New data length: {len(obfuscated)}bytes")
+    print_status(f"[+] New data length: {len(obfuscated)}bytes",verbose)
     
     if formatMode == Format.C:
         obfuscated = format_as_c_array(obfuscated)
     elif formatMode == Format.Python:
         obfuscated = format_as_python(obfuscated)
 
-    print(f"[+] Writing obfuscated data to: {outPath}")
+    print_status(f"[+] Writing obfuscated data to: {outPath}",verbose)
     try:
         if isinstance(obfuscated, bytes):
             write_bytes_to_file(outPath, obfuscated)
@@ -90,8 +114,10 @@ def main() -> int:
               "[X] Exiting!")
         return 1
     if isinstance(obfuscated, str):
-        print(f"[+] {formatMode.name} formated output:\n\n{obfuscated}")
+        print_status(f"[+] {formatMode.name} formated output:\n",verbose)
+        print_status(f"{obfuscated}\n",(verbose or terminalOutput))
     
+    print_status("[+] Program finished! Happy hacking!",verbose)
     return 0
 
 if __name__ == '__main__':
