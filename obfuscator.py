@@ -28,7 +28,8 @@ def main() -> int:
     """
     parser = argparse.ArgumentParser(
         prog="obfuscator.py",
-        description="A simple program that obfuscates raw shellcode using xor to avoid detection by antivirus software.",
+        description="A simple program that obfuscates raw shellcode " \
+                    "using xor to avoid detection by antivirus software.",
         epilog="example usage, python obfuscator.py shellcode.bin -k 0x42 -o obfuscated_code.xor",
         formatter_class=argparse.RawTextHelpFormatter)
 
@@ -38,19 +39,20 @@ def main() -> int:
                         action="store_true",
                         help="Skip overwrite prompt and always overwrite existing output file.")
     parser.add_argument("-k", "--key",
-                        help="""The key for the xor operation,
-KEY can be either as as a single byte formated as HEX '0x42' or as a string 'example123'.""",
+                        help="The key for the xor operation,\n" \
+                            "KEY can be either as as a single byte formated as HEX '0x42' or as " \
+                            "a string 'example123'.",
                         required=True)
     parser.add_argument("-m", "--mode",
                         default="raw",
                         choices=["r","raw","c","c-array","p","python"],
-                        help="""Format mode for the output
-r, raw - raw binary output. (default)
-c, c-array - As a C/C++ array for use in C/C++ code.
-p, python - as a Python literal for use in Python code.""")
+                        help="Format mode for the output\n" \
+                            "r, raw - raw binary output. (default)\n" \
+                            "c, c-array - As a C/C++ array for use in C/C++ code.\n" \
+                            "p, python - as a Python literal for use in Python code.")
     parser.add_argument("-o", "--output",
-                        help="""Output path for xor obfuscated shellcode.
-If omitted, raw mode will result in no output but program will still run.""")
+                        help="Output path for xor obfuscated shellcode.\n" \
+                        "If omitted, raw mode will result in no output but program will still run.")
     parser.add_argument("-t", "--terminal",
                         action="store_true",
                         help="If possible show output data in terminal.")
@@ -81,11 +83,11 @@ If omitted, raw mode will result in no output but program will still run.""")
     output_format = Enum("Formats", [("raw", 0),("C", 1),("Python",2)])
 
     format_mode = output_format.raw
-    if format_input == "r" or format_input == "raw":
+    if format_input in ("r", "raw"):
         format_mode = output_format.raw
-    elif format_input == "c" or format_input == "c-array":
+    elif format_input in ("c", "c-array"):
         format_mode = output_format.C
-    elif format_input == "p" or format_input == "python":
+    elif format_input in ("p", "python"):
         format_mode = output_format.Python
 
     # Validate input path early to provide fast feedback
@@ -101,14 +103,13 @@ If omitted, raw mode will result in no output but program will still run.""")
                        +"    do you want to overwrite? (y/N): ").lower().strip()
         # Keep prompting until valid answer received: explicit 'y' to continue
         while True:
-            if uinput == "n" or uinput == "":
+            if uinput in ("n", ""):
                 print_status("[-] File will not be overwriten. Exiting!")
                 return 1
-            elif uinput == "y":
+            if uinput == "y":
                 print_status("[+] File will be overwriten.", verbose)
                 break
-            else:
-                uinput = input("[-] Invalid input, answer with 'y' or 'n'! (y/N): ")
+            uinput = input("[-] Invalid input, answer with 'y' or 'n'! (y/N): ")
 
     # Read shellcode bytes; read_file_as_bytes raises IOError on failure -> handled below
     try:
