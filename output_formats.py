@@ -1,45 +1,41 @@
 def format_as_c_array(data:bytes) -> str:
-    cstring = "unsigned char xor_shellcode[] = {\n    "
-    i = 0
-    c = 4
+    cstring = "unsigned char xor_shellcode[] = {\n"
+    linestart = True
+    charLen = 0
     for b in data:
-        if i > 0:
-            s = ", "
-            cstring += s
-            c += len(s)
-        s = f"{b:#0{4}x}"
+        s = ""
+        if linestart is not True:
+            s += ", "
+        elif linestart is True:
+            s += "    "
+        s += f"{b:#0{4}x}"
         cstring += s
-        c += len(s)
-        i += 1
-        if c >= (80 - len(s) - 1):
-            s = ",\n    "
-            cstring += s
-            c = len(s)
-            i = 0
+        charLen += len(s)
+        linestart = False
+        if charLen >= (80 - len(s) - 1):
+            cstring += ",\n"
+            charLen = 0
+            linestart = True
     cstring += "\n};"
     return cstring
 
 def format_as_python(data:bytes) -> str:
     pstring = f"shellcode = b\"\"\n"
-    i = 0
-    c = 0
+    linestart = True
+    charLen = 0
     for b in data:
-        if i == 0:
+        s = ""
+        if linestart is True:
             s = "shellcode += b\""
-            pstring += s
-            c += len(s)
 
-        s = f"\\x{b:0{2}x}"
+        s += f"\\x{b:0{2}x}"
         pstring += s
-        c += len(s)
+        charLen += len(s)
 
-        i += 1
-        if c >= (80 - len(s) - 1):
-            s = "\"\n"
-            pstring += s
-            c = 0
-            i = 0
+        linestart = False
+        if charLen >= (80 - len(s) - 1):
+            pstring += "\"\n"
+            charLen = 0
+            linestart = True
     pstring += "\""
     return pstring
-
-
