@@ -7,14 +7,18 @@ from xor import xor_obfuscate
 from output_formats import format_as_c_array, format_as_python
 
 # Simple function for filtering output based on boolean input
-def print_status(msg: str,enabled: bool = True):
+def print_status(msg: str,enabled: bool = True, output: bool = False):
     """Conditionally print **msg**, determined by the **enabled** parameter.
     
     :param str msg: Message string to be printed.
-    :param bool enabled: (default: True) When True **msg** will be printed. When False **msg** will not be printed.
+    :param bool enabled: (default: True) When False **msg** will not be printed.
+    :param bool output: (default: False) When True print to stdout, otherwise print to stderr
     """
     if enabled is True:
-        print(msg)
+        if output is True:
+            print(msg, file=sys.stdout)
+        elif output is False:
+            print(msg, file=sys.stderr)
 
 def main() -> int:
     """Main entrypoint for the CLI. Reads a binary shellcode file, obfuscates the data and writes it to a file in formats and/or outputs it to the terminal.
@@ -29,8 +33,6 @@ def main() -> int:
     
     parser.add_argument("shellcodePath",
                         help="Path to shellcode binary file.")
-    parser.add_argument("outputPath", 
-                        help="Output path for xor obfuscated shellcode.")
     parser.add_argument("-f", "--force", "--overwrite",
                         action="store_true",
                         help="Skip overwrite prompt and always overwrite existing output file.")
@@ -41,6 +43,8 @@ def main() -> int:
                         default="raw",
                         choices=["r","raw","c","c-array","p","python"],
                         help="Format of the output\nr,raw - raw binary output. (default)\nc,c-array - As a C/C++ array for use in C/C++ code.\np,python - as a Python literal for use in Python code.")
+    parser.add_argument("-o", "--output",
+                        help="Output path for xor obfuscated shellcode.\nIf omited, raw mode will result in no output but program will still run.")
     parser.add_argument("-t", "--terminal",
                         action="store_true",
                         help="If possible show output data in terminal.")
@@ -80,25 +84,24 @@ def main() -> int:
     
     # Validate input path early to provide fast feedback
     if not path.exists(args.shellcodePath):
-        print(f"[!] Could not find file with path: {args.shellcodePath}\n"+
+        print_status(f"[!] Could not find file with path: {args.shellcodePath}\n"+
                "[X] Exiting!")
         return 1
     
+    outPath = args.output
     # If output exists ask user unless --force specified
-    if path.exists(args.outputPath) and args.force is not True:
-        uinput = input(f"[!] File {args.outputPath} already exists,\ndo you want to overwrite? (y/N): ").lower().strip()
+    if outPath is not None and path.exists(outPath) and args.force is not True:
+        uinput = input(f"[!] File {outPath} already exists,\ndo you want to overwrite? (y/N): ").lower().strip()
         # Keep prompting until valid answer received: explicit 'y' to continue
         while True:
             if uinput == "n" or uinput == "":
-                print("[-] File will not be overwriten. Exiting!")
+                print_status("[-] File will not be overwriten. Exiting!")
                 return 1
             elif uinput == "y":
                 print_status("[+] File will be overwriten.", verbose)
                 break
             else:
                 uinput = input("[-] Invalid input, answer with 'y' or 'n'! (y/N): ")
-        
-    outPath = args.outputPath
     
     # Read shellcode bytes; read_file_as_bytes raises IOError on failure -> handled below
     try:
@@ -125,21 +128,29 @@ def main() -> int:
     elif formatMode == Format.Python:
         obfuscated = format_as_python(obfuscated)
 
-    print_status(f"[+] Writing obfuscated data to: {outPath}",verbose)
-    # Choose write function based on current object type (bytes vs str)
-    try:
-        if isinstance(obfuscated, bytes):
-            write_bytes_to_file(outPath, obfuscated)
-        elif isinstance(obfuscated, str):
-            write_to_file(outPath, obfuscated)
-    except IOError:
-        print("[!] There was an error writing the file!\n"+
-              "[X] Exiting!")
-        return 1
-    # If output was formatted as text display it when verbose or terminal flag is set
+    # Ignore write functions if no output specified and if obfuscated data is binary force a status message to stderr
+    if outPath is not None:
+        print_status(f"[+] Writing obfuscated data to: {outPath}",verbose)
+        # Choose write function based on current object type (bytes vs str)
+        try:
+            if isinstance(obfuscated, bytes):
+                write_bytes_to_file(outPath, obfuscated)
+            elif isinstance(obfuscated, str):
+                write_to_file(outPath, obfuscated)
+        except IOError:
+            print_status("[!] There was an error writing the file!\n"+
+                "[X] Exiting!")
+            return 1
+    elif isinstance(obfuscated, bytes):
+        print_status("[+] Successfully obfuscated binary data!\n[!] No output in raw mode!\n    Run again with --output to save binary data")
+
+    # If output was formatted as text display it when verbose or terminal flag is set or if there is no output specified
     if isinstance(obfuscated, str):
         print_status(f"[+] {formatMode.name} formated output:\n",verbose)
-        print_status(f"{obfuscated}\n",(verbose or terminalOutput))
+        if outPath is None:
+            print_status(f"{obfuscated}\n",True, True)
+        else:
+            print_status(f"{obfuscated}\n",(verbose or terminalOutput), True)
     
     print_status("[+] Program finished! Happy hacking!",verbose)
     return 0
