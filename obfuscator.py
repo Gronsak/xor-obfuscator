@@ -27,7 +27,6 @@ def main() -> int:
     :return int: process exit code (0 success, 1 on error)
     """
     parser = argparse.ArgumentParser(
-        prog="obfuscator.py",
         description="A simple program that obfuscates raw shellcode " \
                     "using xor to avoid detection by antivirus software.",
         epilog="example usage, python obfuscator.py shellcode.bin -k 0x42 -o obfuscated_code.xor",
