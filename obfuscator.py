@@ -11,7 +11,7 @@ def print_status(msg: str,enabled: bool = True):
     """Conditionally print **msg**, determined by the **enabled** parameter.
     
     :param str msg: Message string to be printed.
-    :param bool enabled: (default: True) When True **msg** will be printed. When False **msg** will not be printed.
+    :param bool enabled: (default: True) When False **msg** will not be printed.
     """
     if enabled is True:
         print(msg)
@@ -80,7 +80,7 @@ def main() -> int:
     
     # Validate input path early to provide fast feedback
     if not path.exists(args.shellcodePath):
-        print(f"[!] Could not find file with path: {args.shellcodePath}\n"+
+        print_status(f"[!] Could not find file with path: {args.shellcodePath}\n"+
                "[X] Exiting!")
         return 1
     
@@ -90,7 +90,7 @@ def main() -> int:
         # Keep prompting until valid answer received: explicit 'y' to continue
         while True:
             if uinput == "n" or uinput == "":
-                print("[-] File will not be overwriten. Exiting!")
+                print_status("[-] File will not be overwriten. Exiting!")
                 return 1
             elif uinput == "y":
                 print_status("[+] File will be overwriten.", verbose)
@@ -133,7 +133,7 @@ def main() -> int:
         elif isinstance(obfuscated, str):
             write_to_file(outPath, obfuscated)
     except IOError:
-        print("[!] There was an error writing the file!\n"+
+        print_status("[!] There was an error writing the file!\n"+
               "[X] Exiting!")
         return 1
     # If output was formatted as text display it when verbose or terminal flag is set
