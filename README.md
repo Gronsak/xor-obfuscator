@@ -43,7 +43,7 @@ The output can either be directly written to a file using the -o/--output flag o
 python obfuscator.py shellcode.bin -tk 0x42 --mode c-array
 ```
 Output
-```
+```c
 unsigned char xored_shellcode[] = {
     0x1a, 0x1a, 0x1a, 0x1a, 0x1a, 0x1a, 0x1a, 0x1a, 0x1a, 0x1a, 0x1a, 0x1a,
     0x1a, 0x1a, 0x1a, 0x1a, 0x1a, 0x1a, 0x1a, 0x1a, 0x1a, 0x1a, 0x1a, 0x1a,
@@ -79,7 +79,7 @@ unsigned char xored_shellcode[] = {
 python obfuscator.py shellcode.bin -tk 0x42 --mode python
 ```
 Output:
-```
+```python
 shellcode = b""
 shellcode += b"\xbe\x0a\xc3\xa6\xb2\xbd\xbd\xbd\xaa\x8e\x42\x42\x42\x03\x13"
 shellcode += b"\x03\x12\x10\x13\x14\x0a\x73\x90\x27\x0a\xc9\x10\x22\x0a\xc9"
