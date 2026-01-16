@@ -7,14 +7,18 @@ from xor import xor_obfuscate
 from output_formats import format_as_c_array, format_as_python
 
 # Simple function for filtering output based on boolean input
-def print_status(msg: str,enabled: bool = True):
+def print_status(msg: str,enabled: bool = True, output: bool = False):
     """Conditionally print **msg**, determined by the **enabled** parameter.
     
     :param str msg: Message string to be printed.
     :param bool enabled: (default: True) When False **msg** will not be printed.
+    :param bool output: (default: False) When True print to stdout, otherwise print to stderr
     """
     if enabled is True:
-        print(msg)
+        if output is True:
+            print(msg, file=sys.stdout)
+        elif output is False:
+            print(msg, file=sys.stderr)
 
 def main() -> int:
     """Main entrypoint for the CLI. Reads a binary shellcode file, obfuscates the data and writes it to a file in formats and/or outputs it to the terminal.
@@ -139,7 +143,7 @@ def main() -> int:
     # If output was formatted as text display it when verbose or terminal flag is set
     if isinstance(obfuscated, str):
         print_status(f"[+] {formatMode.name} formated output:\n",verbose)
-        print_status(f"{obfuscated}\n",(verbose or terminalOutput))
+        print_status(f"{obfuscated}\n",(verbose or terminalOutput), True)
     
     print_status("[+] Program finished! Happy hacking!",verbose)
     return 0
