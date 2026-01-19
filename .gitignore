@@ -209,3 +209,5 @@ __marimo__/
 *.bin
 *.xor
 .VSCodeCounter/
+loader.c
+*.exe
