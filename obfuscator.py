@@ -1,3 +1,6 @@
+"""
+The main module for obfuscator.py
+"""
 import sys
 import argparse
 from enum import Enum
