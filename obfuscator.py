@@ -57,9 +57,10 @@ def handle_output(
                 write_bytes_to_file(output_path, data)
             elif isinstance(data, str):
                 write_to_file(output_path, data)
-        except IOError:
+        except IOError as e:
             print_status("[!] There was an error writing the file!\n"+
-                "[X] Exiting!")
+                        f"[!] Error: {e.strerror}"+
+                         "[X] Exiting!")
             return False
     elif isinstance(data, bytes):
         print_status("[+] Successfully obfuscated binary data!\n"+
@@ -175,9 +176,10 @@ def main() -> int:
     # Read shellcode bytes; read_file_as_bytes raises IOError on failure -> handled below
     try:
         file = read_file_as_bytes(args.shellcodePath)
-    except IOError:
+    except IOError as e:
         print_status("[!] There was an error reading the file!\n"+
-              "[X] Exiting!")
+                    f"[!] Error: {e.strerror}"+
+                     "[X] Exiting!")
         return 1
 
     # Report key runtime info only if verbose set
