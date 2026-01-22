@@ -1,9 +1,12 @@
+"""
+Provides functions for formatting bytes for different outputs.
+"""
 def format_as_c_array(data:bytes) -> str:
     """Formats the input **data** as a C/C++ char array with the data 
     and returns it as a string with linebreaks that can be pasted into C/C++ code.
 
-    :param bytes data: bytes to be converted and formated
-    :return str: a formated string containing a C/C++ char array containing the data
+    :param bytes data: bytes to be converted and formatted
+    :return str: a formatted string containing a C/C++ char array containing the data
 
     **example string**:
     ```
@@ -38,8 +41,8 @@ def format_as_python(data:bytes) -> str:
     """Formats the input **data** as a Python literal b"" converted to HEX
     and returns it as a string with linebreaks that can be pasted into Python code.
 
-    :param bytes data: bytes to be converted and formated
-    :return str: a formated string containing a Python literal b"" with the data
+    :param bytes data: bytes to be converted and formatted
+    :return str: a formatted string containing a Python literal b"" with the data
     
     **example string**:
     ```
