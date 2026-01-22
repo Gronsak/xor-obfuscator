@@ -10,7 +10,7 @@ from xor import xor_obfuscate
 from output_formats import format_as_c_array, format_as_python
 
 # Enum for internal representation of output format
-output_format = Enum("Formats", [("raw", 0),("C", 1),("Python",2)])
+OutputFormat = Enum("Formats", [("raw", 0),("C", 1),("Python",2)])
 
 def print_status(msg: str,enabled: bool = True, output: bool = False):
     """Conditionally print **msg**, determined by the **enabled** parameter.
@@ -28,7 +28,7 @@ def print_status(msg: str,enabled: bool = True, output: bool = False):
 def handle_output(
         data:bytes,
         output_path:str|None,
-        format_mode:output_format,
+        format_mode:OutputFormat,
         verbose:bool,
         terminal_output:bool) -> bool:
     """
@@ -42,9 +42,9 @@ def handle_output(
     :return bool: on error returns False, on success returns True
     """
     # Convert to requested output format only if needed
-    if format_mode == output_format.C:
+    if format_mode == OutputFormat.C:
         data = format_as_c_array(data)
-    elif format_mode == output_format.Python:
+    elif format_mode == OutputFormat.Python:
         data = format_as_python(data)
 
     # Ignore write functions if no output specified and
@@ -143,11 +143,11 @@ def main() -> int:
 
     match format_input:
         case "r"|"raw":
-            format_mode = output_format.raw
+            format_mode = OutputFormat.raw
         case "c"|"c-array":
-            format_mode = output_format.C
+            format_mode = OutputFormat.C
         case "p"|"python":
-            format_mode = output_format.Python
+            format_mode = OutputFormat.Python
 
     # Validate input path before continuing
     if not path.exists(args.shellcodePath):
