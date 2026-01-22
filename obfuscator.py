@@ -30,7 +30,7 @@ def handle_output(data:bytes, output_path:str|None, format_mode:output_format, v
     :param str|None output_path: Filepath to write output to, if None no file will be written
     :param Formats format_mode: How to format the output
     :param bool verbose: If output should be verbose (True) or not (False)
-    :param bool terminal_output: If formated output should be printed to terminal (True) or not (False)
+    :param bool terminal_output: If formatted output should be printed to terminal (True) or not (False)
     :return bool: on error returns False, on success returns True
     """
     # Convert to requested output format only if needed
@@ -87,7 +87,7 @@ def create_parser() -> argparse.ArgumentParser:
                         help="Skip overwrite prompt and always overwrite existing output file.")
     parser.add_argument("-k", "--key",
                         help="The key for the xor operation,\n" \
-                            "KEY can be either as as a single byte formated as HEX '0x42' or as " \
+                            "KEY can be either as as a single byte formatted as HEX '0x42' or as " \
                             "a string 'example123'.",
                         required=True)
     parser.add_argument("-m", "--mode",
@@ -157,10 +157,10 @@ def main() -> int:
         while True:
             match uinput:
                 case "" | "n" | "no":
-                    print_status("[-] File will not be overwriten. Exiting!")
+                    print_status("[-] File will not be overwritten. Exiting!")
                     return 1
                 case "y" | "yes":
-                    print_status("[+] File will be overwriten.", verbose)
+                    print_status("[+] File will be overwritten.", verbose)
                     break
             uinput = input("[-] Invalid answer! (y/N): ")
 
