@@ -68,11 +68,11 @@ def handle_output(data:bytes, output_path:str|None, format_mode:output_format, v
             print_status(f"{data}\n",(verbose or terminal_output), True)
     return True
 
-def main() -> int:
-    """Main entrypoint for the CLI. Reads a binary shellcode file, 
-    obfuscates the data and writes it to a file in formats and/or outputs it to the terminal.
-
-    :return int: process exit code (0 success, 1 on error)
+def create_parser() -> argparse.ArgumentParser:
+    """
+    Create the ArgumentParser to handle program arguments
+    
+    :return ArgumentParser: Configured argument parser
     """
     parser = argparse.ArgumentParser(
         description="A simple program that obfuscates raw shellcode " \
@@ -106,22 +106,28 @@ def main() -> int:
     parser.add_argument("-v", "--verbose",
                         action="store_true",
                         help="Print status messages and if possible output data.")
+    return parser
+
+def main() -> int:
+    """Main entrypoint for the CLI. Reads a binary shellcode file, 
+    obfuscates the data and writes it to a file in formats and/or outputs it to the terminal.
+
+    :return int: process exit code (0 success, 1 on error)
+    """
+    parser = create_parser()
 
     args = parser.parse_args()
 
     verbose = args.verbose
     terminal_output = args.terminal
 
-    key = b""
-    # keyMode variable is used to give user feedback if input was recognized as HEX
-    key_mode = ""
     # Parse HEX input if string starts with "0x" otherwise convert string to bytes
     # Note: currently only supports single-byte hex like '0x42' because len==4 is checked.
+    # key_mode variable is used to give user feedback if input was recognized as HEX
     if args.key.startswith("0x") and len(args.key) == 4:
         key = bytes.fromhex(args.key[2:])
         key_mode = "hex"
     else:
-        # Treat any other input as UTF-8 strings (multi-byte key supported)
         key = bytes(args.key, "utf-8")
         key_mode = "string"
 
@@ -135,26 +141,28 @@ def main() -> int:
         case "p"|"python":
             format_mode = output_format.Python
 
-    # Validate input path early to provide fast feedback
+    # Validate input path before continuing
     if not path.exists(args.shellcodePath):
         print_status(f"[!] Could not find file with path: {args.shellcodePath}\n"+
                "[X] Exiting!")
         return 1
 
     output_path = args.output
+
     # If output exists ask user unless --force specified
+    # Keep prompting until valid answer received: explicit 'y' to continue
     if output_path is not None and path.exists(output_path) and args.force is not True:
         uinput = input(f"[!] File {output_path} already exists,\n"
                        +"    do you want to overwrite? (y/N): ").lower().strip()
-        # Keep prompting until valid answer received: explicit 'y' to continue
         while True:
-            if uinput in ("n", ""):
-                print_status("[-] File will not be overwriten. Exiting!")
-                return 1
-            if uinput == "y":
-                print_status("[+] File will be overwriten.", verbose)
-                break
-            uinput = input("[-] Invalid input, answer with 'y' or 'n'! (y/N): ")
+            match uinput:
+                case "" | "n" | "no":
+                    print_status("[-] File will not be overwriten. Exiting!")
+                    return 1
+                case "y" | "yes":
+                    print_status("[+] File will be overwriten.", verbose)
+                    break
+            uinput = input("[-] Invalid answer! (y/N): ")
 
     # Read shellcode bytes; read_file_as_bytes raises IOError on failure -> handled below
     try:
