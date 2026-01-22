@@ -127,13 +127,13 @@ def main() -> int:
 
     format_input = args.mode.lower()
 
-    format_mode = output_format.raw
-    if format_input in ("r", "raw"):
-        format_mode = output_format.raw
-    elif format_input in ("c", "c-array"):
-        format_mode = output_format.C
-    elif format_input in ("p", "python"):
-        format_mode = output_format.Python
+    match format_input:
+        case "r"|"raw":
+            format_mode = output_format.raw
+        case "c"|"c-array":
+            format_mode = output_format.C
+        case "p"|"python":
+            format_mode = output_format.Python
 
     # Validate input path early to provide fast feedback
     if not path.exists(args.shellcodePath):
