@@ -1,3 +1,6 @@
+"""
+Provides an xor_obfuscate function that obfuscates bytes with the key using xor.
+"""
 def xor_obfuscate(data:bytes, key:bytes) -> bytes:
     """Runs xor function on **data** using **key**s bytes.
     
