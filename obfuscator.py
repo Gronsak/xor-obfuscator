@@ -25,15 +25,20 @@ def print_status(msg: str,enabled: bool = True, output: bool = False):
         elif output is False:
             print(msg, file=sys.stderr)
 
-def handle_output(data:bytes, output_path:str|None, format_mode:output_format, verbose:bool, terminal_output:bool) -> bool:
+def handle_output(
+        data:bytes,
+        output_path:str|None,
+        format_mode:output_format,
+        verbose:bool,
+        terminal_output:bool) -> bool:
     """
-    Helper function to handle final program output and print status messages depending on input parameters.
+    Helper function to handle final program output and print related status.
     
     :param bytes data: Data bytes to be output
     :param str|None output_path: Filepath to write output to, if None no file will be written
     :param Formats format_mode: How to format the output
     :param bool verbose: If output should be verbose (True) or not (False)
-    :param bool terminal_output: If formatted output should be printed to terminal (True) or not (False)
+    :param bool terminal_output: If output should be printed to terminal (True) or not (False)
     :return bool: on error returns False, on success returns True
     """
     # Convert to requested output format only if needed
