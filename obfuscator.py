@@ -6,7 +6,9 @@ from utils import read_file_as_bytes, write_bytes_to_file, write_to_file
 from xor import xor_obfuscate
 from output_formats import format_as_c_array, format_as_python
 
-# Simple function for filtering output based on boolean input
+# Enum for internal representation of output format
+output_format = Enum("Formats", [("raw", 0),("C", 1),("Python",2)])
+
 def print_status(msg: str,enabled: bool = True, output: bool = False):
     """Conditionally print **msg**, determined by the **enabled** parameter.
     
@@ -19,6 +21,52 @@ def print_status(msg: str,enabled: bool = True, output: bool = False):
             print(msg, file=sys.stdout)
         elif output is False:
             print(msg, file=sys.stderr)
+
+def handle_output(data:bytes, output_path:str|None, format_mode:output_format, verbose:bool, terminal_output:bool) -> bool:
+    """
+    Helper function to handle final program output and print status messages depending on input parameters.
+    
+    :param bytes data: Data bytes to be output
+    :param str|None output_path: Filepath to write output to, if None no file will be written
+    :param Formats format_mode: How to format the output
+    :param bool verbose: If output should be verbose (True) or not (False)
+    :param bool terminal_output: If formated output should be printed to terminal (True) or not (False)
+    :return bool: on error returns False, on success returns True
+    """
+    # Convert to requested output format only if needed
+    if format_mode == output_format.C:
+        data = format_as_c_array(data)
+    elif format_mode == output_format.Python:
+        data = format_as_python(data)
+
+    # Ignore write functions if no output specified and
+    # if obfuscated data is binary force a status message to stderr
+    if output_path is not None:
+        print_status(f"[+] Writing obfuscated data to: {output_path}",verbose)
+        # Choose write function based on current object type (bytes vs str)
+        try:
+            if isinstance(data, bytes):
+                write_bytes_to_file(output_path, data)
+            elif isinstance(data, str):
+                write_to_file(output_path, data)
+        except IOError:
+            print_status("[!] There was an error writing the file!\n"+
+                "[X] Exiting!")
+            return False
+    elif isinstance(data, bytes):
+        print_status("[+] Successfully obfuscated binary data!\n"+
+                     "[!] No output in raw mode!\n"+
+                     "    Run again with --output to save binary data")
+
+    # If output was formatted as text display it when verbose or terminal flag
+    # is set or if there is no output specified
+    if isinstance(data, str):
+        print_status(f"[+] {format_mode.name} formatted output:\n",verbose)
+        if output_path is None:
+            print_status(f"{data}\n",True, True)
+        else:
+            print_status(f"{data}\n",(verbose or terminal_output), True)
+    return True
 
 def main() -> int:
     """Main entrypoint for the CLI. Reads a binary shellcode file, 
@@ -78,8 +126,6 @@ def main() -> int:
         key_mode = "string"
 
     format_input = args.mode.lower()
-    # Use an Enum for clear internal representation of output format
-    output_format = Enum("Formats", [("raw", 0),("C", 1),("Python",2)])
 
     format_mode = output_format.raw
     if format_input in ("r", "raw"):
@@ -124,44 +170,14 @@ def main() -> int:
           f"[+] Format: {format_mode.name}\n"+
           f"[+] Key: {args.key} (mode:{key_mode})", verbose)
 
+    # xor each data byte using key (implementation in xor.py)
     print_status("[+] Running xor operation...", verbose)
-    # Core transformation: xor each byte with key (implementation in xor.py)
     obfuscated = xor_obfuscate(file,key)
     print_status(f"[+] New data length: {len(obfuscated)}bytes",verbose)
 
-    # Convert to requested output format only if needed
-    if format_mode == output_format.C:
-        obfuscated = format_as_c_array(obfuscated)
-    elif format_mode == output_format.Python:
-        obfuscated = format_as_python(obfuscated)
-
-    # Ignore write functions if no output specified and
-    # if obfuscated data is binary force a status message to stderr
-    if output_path is not None:
-        print_status(f"[+] Writing obfuscated data to: {output_path}",verbose)
-        # Choose write function based on current object type (bytes vs str)
-        try:
-            if isinstance(obfuscated, bytes):
-                write_bytes_to_file(output_path, obfuscated)
-            elif isinstance(obfuscated, str):
-                write_to_file(output_path, obfuscated)
-        except IOError:
-            print_status("[!] There was an error writing the file!\n"+
-                "[X] Exiting!")
-            return 1
-    elif isinstance(obfuscated, bytes):
-        print_status("[+] Successfully obfuscated binary data!\n"+
-                     "[!] No output in raw mode!\n"+
-                     "    Run again with --output to save binary data")
-
-    # If output was formatted as text display it when verbose or terminal flag
-    # is set or if there is no output specified
-    if isinstance(obfuscated, str):
-        print_status(f"[+] {format_mode.name} formated output:\n",verbose)
-        if output_path is None:
-            print_status(f"{obfuscated}\n",True, True)
-        else:
-            print_status(f"{obfuscated}\n",(verbose or terminal_output), True)
+    success = handle_output(obfuscated, output_path, format_mode, verbose, terminal_output)
+    if success is not True:
+        return 1
 
     print_status("[+] Program finished!\n    Happy hacking!",verbose)
     return 0
